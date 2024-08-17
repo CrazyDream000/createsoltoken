@@ -1902,7 +1902,137 @@ mod tests {
         )
         .unwrap();
 
+        // insufficient funds
+        assert_eq!(
+            Err(TokenError::InsufficientFunds.into()),
+            do_process_instruction(
+                transfer(&program_id, &account2_key, &account_key, &owner_key, &[], 1).unwrap(),
+                vec![
+                    &mut account2_account,
+                    &mut account_account,
+                    &mut owner_account,
+                ],
+            )
+        );
 
+        // approve delegate
+        do_process_instruction(
+            approve(
+                &program_id,
+                &account_key,
+                &delegate_key,
+                &owner_key,
+                &[],
+                100,
+            )
+            .unwrap(),
+            vec![
+                &mut account_account,
+                &mut delegate_account,
+                &mut owner_account,
+            ],
+        )
+        .unwrap();
+
+        // transfer via delegate
+        do_process_instruction(
+            transfer(
+                &program_id,
+                &account_key,
+                &account2_key,
+                &delegate_key,
+                &[],
+                100,
+            )
+            .unwrap(),
+            vec![
+                &mut account_account,
+                &mut account2_account,
+                &mut delegate_account,
+            ],
+        )
+        .unwrap();
+
+        // insufficient funds approved via delegate
+        assert_eq!(
+            Err(TokenError::OwnerMismatch.into()),
+            do_process_instruction(
+                transfer(
+                    &program_id,
+                    &account_key,
+                    &account2_key,
+                    &delegate_key,
+                    &[],
+                    100
+                )
+                .unwrap(),
+                vec![
+                    &mut account_account,
+                    &mut account2_account,
+                    &mut delegate_account,
+                ],
+            )
+        );
+
+        // transfer rest
+        do_process_instruction(
+            transfer(
+                &program_id,
+                &account_key,
+                &account2_key,
+                &owner_key,
+                &[],
+                900,
+            )
+            .unwrap(),
+            vec![
+                &mut account_account,
+                &mut account2_account,
+                &mut owner_account,
+            ],
+        )
+        .unwrap();
+
+        // approve delegate
+        do_process_instruction(
+            approve(
+                &program_id,
+                &account_key,
+                &delegate_key,
+                &owner_key,
+                &[],
+                100,
+            )
+            .unwrap(),
+            vec![
+                &mut account_account,
+                &mut delegate_account,
+                &mut owner_account,
+            ],
+        )
+        .unwrap();
+
+        // insufficient funds in source account via delegate
+        assert_eq!(
+            Err(TokenError::InsufficientFunds.into()),
+            do_process_instruction(
+                transfer(
+                    &program_id,
+                    &account_key,
+                    &account2_key,
+                    &delegate_key,
+                    &[],
+                    100
+                )
+                .unwrap(),
+                vec![
+                    &mut account_account,
+                    &mut account2_account,
+                    &mut delegate_account,
+                ],
+            )
+        );
+    }
 
     #[test]
     fn test_self_transfer() {
