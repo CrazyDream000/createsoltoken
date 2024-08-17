@@ -1802,6 +1802,106 @@ mod tests {
         .unwrap();
 
         // insufficient funds
+        assert_eq!(
+            Err(TokenError::InsufficientFunds.into()),
+            do_process_instruction(
+                transfer(&program_id, &account_key, &account2_key, &owner_key, &[], 1).unwrap(),
+                vec![
+                    &mut account_account,
+                    &mut account2_account,
+                    &mut owner_account,
+                ],
+            )
+        );
+
+        // transfer half back
+        do_process_instruction(
+            transfer(
+                &program_id,
+                &account2_key,
+                &account_key,
+                &owner_key,
+                &[],
+                500,
+            )
+            .unwrap(),
+            vec![
+                &mut account2_account,
+                &mut account_account,
+                &mut owner_account,
+            ],
+        )
+        .unwrap();
+
+        // incorrect decimals
+        assert_eq!(
+            Err(TokenError::MintDecimalsMismatch.into()),
+            do_process_instruction(
+                transfer_checked(
+                    &program_id,
+                    &account2_key,
+                    &mint_key,
+                    &account_key,
+                    &owner_key,
+                    &[],
+                    1,
+                    10 // <-- incorrect decimals
+                )
+                .unwrap(),
+                vec![
+                    &mut account2_account,
+                    &mut mint_account,
+                    &mut account_account,
+                    &mut owner_account,
+                ],
+            )
+        );
+
+        // incorrect mint
+        assert_eq!(
+            Err(TokenError::MintMismatch.into()),
+            do_process_instruction(
+                transfer_checked(
+                    &program_id,
+                    &account2_key,
+                    &account3_key, // <-- incorrect mint
+                    &account_key,
+                    &owner_key,
+                    &[],
+                    1,
+                    2
+                )
+                .unwrap(),
+                vec![
+                    &mut account2_account,
+                    &mut account3_account, // <-- incorrect mint
+                    &mut account_account,
+                    &mut owner_account,
+                ],
+            )
+        );
+        // transfer rest with explicit decimals
+        do_process_instruction(
+            transfer_checked(
+                &program_id,
+                &account2_key,
+                &mint_key,
+                &account_key,
+                &owner_key,
+                &[],
+                500,
+                2,
+            )
+            .unwrap(),
+            vec![
+                &mut account2_account,
+                &mut mint_account,
+                &mut account_account,
+                &mut owner_account,
+            ],
+        )
+        .unwrap();
+
 
 
     #[test]
