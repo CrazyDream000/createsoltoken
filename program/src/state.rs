@@ -185,6 +185,12 @@ pub enum AccountState {
     Frozen,
 }
 
+impl Default for AccountState {
+    fn default() -> Self {
+        AccountState::Uninitialized
+    }
+}
+
 /// Multisignature data.
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
