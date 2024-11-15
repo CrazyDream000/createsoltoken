@@ -204,7 +204,12 @@ pub struct Multisig {
     /// Signer public keys
     pub signers: [Pubkey; MAX_SIGNERS],
 }
-
+impl Sealed for Multisig {}
+impl IsInitialized for Multisig {
+    fn is_initialized(&self) -> bool {
+        self.is_initialized
+    }
+}
 impl Pack for Multisig {
     const LEN: usize = 355;
     fn unpack_from_slice(src: &[u8]) -> Result<Self, ProgramError> {
